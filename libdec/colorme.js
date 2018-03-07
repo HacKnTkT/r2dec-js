@@ -25,8 +25,19 @@ module.exports = (function() {
         text: 'yellow',
         types: 'green'
     };
+    const resettheme = {
+        callname: 'reset',
+        comment: 'reset',
+        flow: 'reset',
+        integers: 'reset',
+        labels: 'reset',
+        text: 'reset',
+        types: 'reset'
+    };
 
-    const _colors = require('colors/safe');
+    const _const_html = require('./html/color')
+    const _const_colors = require('colors/safe');
+    var _colors = _const_colors;
     _colors.setTheme(colortheme);
 
     var _regexs = {
@@ -93,6 +104,13 @@ module.exports = (function() {
         return input;
     };
     return {
+        set_html: function(ishtml) {
+            _colors = ishtml ? _const_html : _const_colors;
+            _colors.setTheme(colortheme);
+        },
+        set_color: function(bool) {
+            _colors.setTheme(bool ? colortheme : resettheme);
+        },
         colorize: _colorize,
         callname: function(input) {
             return _colors.callname(input);

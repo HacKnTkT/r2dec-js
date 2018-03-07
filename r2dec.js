@@ -57,6 +57,12 @@ function main(err, r2) {
     });
 }
 
+function htmlconsole(text) {
+    if (text) {
+        console.log(text.replace(/\n/g, '<br>\n').replace(/\ \ \ \ /g, '&nbsp;&nbsp;&nbsp;&nbsp;') + '<br>')
+    }
+}
+
 function suicide() {
     process.kill(process.pid);
 }
@@ -104,10 +110,14 @@ async function asyncMain(err, r2, args) {
         let bits = (await cmd('e asm.bits')).trim();
         const honorpseudo = (await cmd('e asm.pseudo')).trim() == 'true';
         const honorcolor = parseInt((await cmd('e scr.color')).trim()) > 0;
+        const honorhtml = (await cmd('e scr.html')).trim() == 'true';
+
+        colorme.set_html(honorhtml);
+        colorme.set_color(honorcolor || has_option(args, '--colors'));
 
         // r2dec options
         var options = {
-            color: (honorcolor || has_option(args, '--colors')) ? colorme : null,
+            color: colorme,
             casts: !has_option(args, '--hide-casts'),
             ident: null
         };
@@ -119,6 +129,9 @@ async function asyncMain(err, r2, args) {
             /* asm.pseudo breaks things.. */
             if (honorpseudo) {
                 await cmd('e asm.pseudo = false');
+            }
+            if (honorhtml) {
+                await cmd('e scr.html = false');
             }
 
             if (has_option(args, '--issue')) {
@@ -135,9 +148,16 @@ async function asyncMain(err, r2, args) {
                 libdec.analyzer.strings(routine, strings);
                 libdec.analyzer.analyze(routine, architecture);
                 libdec.analyzer.xrefs(routine, xrefs);
-                routine.print(console.log, options);
+                if (honorhtml) {
+                    routine.print(htmlconsole, options);
+                } else {
+                    routine.print(console.log, options);
+                }
             }
 
+            if (honorhtml) {
+                await cmd('e scr.html = true');
+            }
             if (honorpseudo) {
                 await cmd('e asm.pseudo = true');
             }
